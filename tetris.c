@@ -34,6 +34,7 @@ void InitTetris(){
 
 	nextBlock[0]=rand()%7;
 	nextBlock[1]=rand()%7;
+        nextBlock[2]=rand()%7; // 1주차 과제2 구현
 	blockRotate=0;
 	blockY=-1;
 	blockX=WIDTH/2-2;
@@ -57,11 +58,13 @@ void DrawOutline(){
 	move(2,WIDTH+10);
 	printw("NEXT BLOCK");
 	DrawBox(3,WIDTH+10,4,8);
+        move(9, WIDTH+10);
+        DrawBox(10,WIDTH+10,4,8); // 1주차 과제2 구현
 
 	/* score를 보여주는 공간의 태두리를 그린다.*/
-	move(9,WIDTH+10);
+	move(17,WIDTH+10);
 	printw("SCORE");
-	DrawBox(10,WIDTH+10,1,8);
+	DrawBox(18,WIDTH+10,1,8);
 }
 
 int GetCommand(){
@@ -137,8 +140,8 @@ void DrawField(){
 
 
 void PrintScore(int score){
-	move(11,WIDTH+11);
-	printw("%8d",score);
+	move(19,WIDTH+11);
+	printw("%8d",score); // 1주차 과제2 구현
 }
 
 void DrawNextBlock(int *nextBlock){
@@ -154,6 +157,20 @@ void DrawNextBlock(int *nextBlock){
 			else printw(" ");
 		}
 	}
+        for( i = 0; i < 4; i++)
+        {
+                move(10 + i, WIDTH + 13);
+                for( j = 0; j < 4; j++)
+                {
+                        if( block[nextBlock[2]][0][i][j] == 1)
+                        {
+                                attron(A_REVERSE);
+                                printw(" ");
+                                attroff(A_REVERSE);
+                        }
+                        else printw(" ");
+                }
+        }                                                       // 1주차 과제2 구현
 }
 
 void DrawBlock(int y, int x, int blockID,int blockRotate,char tile){
@@ -267,19 +284,19 @@ void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRota
         switch (command)
         {
                 case KEY_UP:                
-                        DrawBlock(blockY, blockX, currentBlock, (blockRotate + 3) % 4, '.'); //DrawBlock함수 정의 일부 수정
+                        DrawBlockWithFeatures(blockY, blockX, currentBlock, (blockRotate + 3) % 4, '.'); //DrawBlock함수 정의 일부 수정
                         break;
                 case KEY_RIGHT:
-                        DrawBlock(blockY, blockX - 1, currentBlock, blockRotate, '.');
+                        DrawBlockWithFeatures(blockY, blockX - 1, currentBlock, blockRotate, '.');
                         break;
                 case KEY_LEFT:
-                        DrawBlock(blockY, blockX + 1, currentBlock, blockRotate, '.');
+                        DrawBlockWithFeatures(blockY, blockX + 1, currentBlock, blockRotate, '.');
                         break;
                 case KEY_DOWN:
-                        DrawBlock(blockY - 1, blockX, currentBlock, blockRotate, '.');
+                        DrawBlockWithFeatures(blockY - 1, blockX, currentBlock, blockRotate, '.');
                         break;
         }
-        DrawBlock(blockY, blockX, currentBlock, blockRotate, ' ');
+        DrawBlockWithFeatures(blockY, blockX, currentBlock, blockRotate, ' ');
 
 	//1. 이전 블록 정보를 찾는다. ProcessCommand의 switch문을 참조할 것
 	//2. 이전 블록 정보를 지운다. DrawBlock함수 참조할 것.
@@ -299,14 +316,14 @@ void BlockDown(int sig){
                 {
                         gameOver = 1;
                 }               
-                AddBlockToField(field, nextBlock[0], blockRotate, blockY, blockX);
-               
+                score += AddBlockToField(field, nextBlock[0], blockRotate, blockY, blockX); // 1주차 과제3 구현
                 score += DeleteLine(field);
                 PrintScore(score); // 점수 계산 및 출력
 
                 nextBlock[0] = nextBlock[1];
-                nextBlock[1] = rand() % 7;
-                DrawNextBlock(nextBlock); // 다음 블록 초기화 및 출력
+                nextBlock[1] = nextBlock[2];
+                nextBlock[2] = rand() % 7;
+                DrawNextBlock(nextBlock); // 다음 블록 초기화 및 출력, 1주차 과제2 구현
 
                 blockY = -1;
                 blockX = WIDTH / 2 - 2;
@@ -319,10 +336,10 @@ void BlockDown(int sig){
 	//강의자료 p26-27의 플로우차트를 참고한다.
 }
 
-void AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
+int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
 	// user code
 
-        int i, j;
+        int i, j, touched = 0;
         for(j = 0; j < 4; j++)
         {
                 for(i = 0; i < 4; i++)
@@ -330,11 +347,15 @@ void AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int
                         if(block[currentBlock][blockRotate][j][i] == 1) // currentBlock[j][i] == 1
                         {
                                 field[blockY+j][blockX+i] = 1;
+                                if((field[blockY+j+1][blockX+i] == 1) || (blockY+j+1 == HEIGHT))
+                                {
+                                        touched++;                              // 1주차 과제3 구현
+                                }
                         }
                 }
         }
-
 	//Block이 추가된 영역의 필드값을 바꾼다.
+        return touched * 10; // 1주차 과제3 구현
 }
 
 int DeleteLine(char f[HEIGHT][WIDTH]){
@@ -373,9 +394,26 @@ int DeleteLine(char f[HEIGHT][WIDTH]){
 
 ///////////////////////////////////////////////////////////////////////////
 
-void DrawShadow(int y, int x, int blockID,int blockRotate){
+void DrawShadow(int y, int x, int blockID,int blockRotate, char tile){
 	// user code
-}
+        int offset = 0;
+        while(CheckToMove(field, blockID, blockRotate, y+offset+1, x))
+        {
+                offset++;
+        }
+        DrawBlock(y+offset, x, blockID, blockRotate, tile);
+}                                                                       //1주차 과제1 구현
+
+void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate, char tile){
+        if(tile == '.'){
+                DrawShadow(y, x, blockID, blockRotate, tile);
+                DrawBlock(y, x, blockID, blockRotate, tile);
+        }
+        else{
+                DrawShadow(y, x, blockID, blockRotate, '/');
+                DrawBlock(y, x, blockID, blockRotate, ' ');
+        }
+}                                                                       //1주차 과제1 구현
 
 void createRankList(){
 	// user code

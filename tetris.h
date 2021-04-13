@@ -17,7 +17,7 @@
 #define NUM_OF_ROTATE	4
 #define BLOCK_HEIGHT	4
 #define BLOCK_WIDTH	4
-#define BLOCK_NUM	2
+#define BLOCK_NUM	3
 
 // menu number
 #define MENU_PLAY '1'
@@ -234,7 +234,7 @@ void DrawField();
  *		  (int) 블럭의 X좌표
  *	return	: none
  ***********************************************************/
-void AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX);
+int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX); // 1주차 과제3 구현
 
 /***********************************************************
  *	완전히 채워진 Line을 삭제하고 점수를 매겨준다.
@@ -294,7 +294,12 @@ void DrawBlock(int y, int x, int blockID,int blockRotate,char tile);
  *		  (int) 블록의 회전 횟수
  *	return	: none
  ***********************************************************/
-void DrawShadow(int y, int x, int blockID,int blockRotate);
+void DrawShadow(int y, int x, int blockID,int blockRotate, char tile);
+
+/*********************************************************
+
+********************************************************/
+void DrawBlockWithFeatures(int y, int x, int blockID, int blockRotate, char tile);
 
 /***********************************************************
  *	테트리스 게임을 시작한다.
